@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse & Retail Sales Story</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-annotation@2.5.1/dist/d3-annotation.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .slide-container {
+            position: relative;
+            min-height: 600px;
+        }
+        
+        .slide {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .slide.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .slide-description {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            margin: 20px 0;
+        }
+        
+        .navigation {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .nav-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .nav-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .slide-counter {
+            color: #666;
+            margin: 0 20px;
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .control-group {
+            display: inline-block;
+            margin: 0 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .annotation-note-label {
+            font-size: 14px;
+            fill: #333;
+        }
+        
+        .annotation-note-title {
+            font-weight: bold;
+            font-size: 16px;
+            fill: #333;
+        }
+        
+        .annotation path {
+            stroke: #333;
+            fill: none;
+        }
+        
+        .axis {
+            font-size: 12px;
+        }
+        
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .bar {
+            transition: all 0.3s ease;
+        }
+        
+        .bar:hover {
+            opacity: 0.8;
+        }
+        
+        .line {
+            fill: none;
+            stroke-width: 3;
+        }
+        
+        .dot {
+            stroke: white;
+            stroke-width: 2;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Warehouse vs Retail Sale Pattern</h1>
+            <p>Narrative visualization - Using Warehouse and Retail sales data</p>
+        </div>
+        
+        <div class="content">
+            <div class="slide-container">
+                <div class="slide active" id="slide-1">
+                    <div class="slide-title">Sales Across Categories</div>
+                    <div class="slide-description">
+                        Let's start the journey by exploring the overall sale items. This chart shows total sales across different item types.
+                    </div>
+                    <div class="chart-container" id="chart-1"></div>
+                </div>
+                
+                <div class="slide" id="slide-2">
+                    <div class="slide-title">Trends Over Time</div>
+                    <div class="slide-description">
+                        How have sales patterns changed over time 
+                    </div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="category-select">Select Category:</label>
+                            <select id="category-select">
+                                <option value="all">All Categories</option>
+                                <option value="WINE">Wine</option>
+                                <option value="BEER">Beer</option>
+                                <option value="LIQUOR">Liquor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container" id="chart-2"></div>
+                </div>
+                
+                <div class="slide" id="slide-3">
+                    <div class="slide-title">Retail vs Warehouse Over Time</div>
+                    <div class="slide-description">
+                        This displays sale comparisons between retail and warehouse 
+                    </div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="year-select">Select Year:</label>
+                            <select id="year-select">
+                                <option value="2017">2017</option>
+                                <option value="2018">2018</option>
+                                <option value="2019">2019</option>
+                                <option value="2020">2020</option>
+                                <option value="all">All Years</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container" id="chart-3"></div>
+                </div>
+                
+                <div class="slide" id="slide-4">
+                    <div class="slide-title">Deep Dive into the specific items</div>
+                    <div class="slide-description">
+                        More detail in each items in quantitiy. 
+                    </div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="metric-select">Select Metric:</label>
+                            <select id="metric-select">
+                                <option value="retail">Retail Sales</option>
+                                <option value="warehouse">Warehouse Sales</option>
+                                <option value="total">Total Sales</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container" id="chart-4"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prev-btn" onclick="previousSlide()" disabled>Previous</button>
+            <span class="slide-counter" id="slide-counter">1 of 4</span>
+            <button class="nav-button" id="next-btn" onclick="nextSlide()">Next</button>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
