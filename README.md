@@ -1,3 +1,5 @@
+https://crowcrowcrow1.github.io/narrative-visualization-jc/
+
 # Narrative Visualization: Warehouse & Retail Sales Story
 
 This project creates an interactive data story that explores warehouse and retail sales patterns using D3.js visualizations. The narrative guides users through four key insights about sales performance across different product categories, time periods, and distribution channels.
